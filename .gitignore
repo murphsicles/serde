@@ -1,0 +1,13 @@
+*.o
+zetac
+test_v4
+test_v4_small
+test_struct
+test_struct_fixed
+test_struct_serde
+test_v4.z
+test_v4_small.z
+test_struct.z
+test_struct_fixed.z
+test_struct_serde.z
+zeta_runtime_c.o
