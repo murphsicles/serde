@@ -1,0 +1,26 @@
+extern fn putchar(c: i64) -> i64;
+extern fn println_i64(v: i64);
+
+struct Person {
+    age: i64,
+    score: i64,
+}
+
+fn serialize(p: Person) {
+    putchar(123); // {
+    putchar(34); putchar(97); putchar(103); putchar(101); putchar(34); // "age"
+    putchar(58); // :
+    println_i64(p.age);
+    putchar(44); // ,
+    putchar(34); putchar(115); putchar(99); putchar(111); putchar(114); putchar(101); putchar(34); // "score"
+    putchar(58); // :
+    println_i64(p.score);
+    putchar(125); putchar(10); // }\n
+}
+
+fn main() -> i64 {
+    let p: Person = Person { age: 30, score: 95 };
+    serialize(p);
+    println_i64(0);
+    return 0;
+}

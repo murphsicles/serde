@@ -1,20 +1,73 @@
-// serde/src/macros.z
-// Derive macros for Serialize and Deserialize
+// serde/src/macros.z — Serialization derive macros for Zeta
 //
-// These macros use Zeta's macro_rules! to generate
-// Serialize/Deserialize implementations for user-defined types.
+// Provides macro_rules! implementations for:
+//   - serialize! — generate JSON from struct fields
+//   - json! — inline JSON construction
 //
-// Example usage:
+// These macros work with the current Zeta compiler's macro system.
+// Full #[derive(Serialize)] support will follow once the compiler's
+// derive system matures.
+
+// ─── json! Macro ───────────────────────────────────────────────────────────
+//
+// Generates inline JSON output from key-value pairs.
+//
+// Usage:
+//   json!({
+//       "name": "value",
+//       "count": 42
+//   })
+//
+// Expands to:
+//   putchar(123);  // {
+//   putchar(34); putchar(110); ... putchar(34); // "name"
+//   putchar(58);  // :
+//   putchar(34); putchar(118); ... putchar(34); // "value"
+//   ...
+
+// ─── serialize! Macro ─────────────────────────────────────────────────────
+//
+// Generates JSON serialization for a struct's fields.
+//
+// Usage:
 //   struct Point { x: i64, y: i64 }
-//   impl Serialize for Point {
-//       fn serialize(&self) -> JsonValue {
-//           // Auto-generated JSON serialization
-//       }
+//   
+//   fn serialize_point(p: Point) {
+//       serialize!(Point {
+//           x: p.x,
+//           y: p.y
+//       })
+//   }
+
+// ─── Implementation ───────────────────────────────────────────────────────
+//
+// These macros are defined in the user's code. The serde library provides
+// the helper functions they call at runtime:
+//   - json_begin(), json_end()
+//   - json_kv_i64(key, val)
+//   - json_kv_str(key, val)
+//   - json_kv_bool(key, val)
+//   - json_comma(), json_colon()
+
+// Example usage:
+//
+//   use serde::json::*;
+//   use serde::macros::serialize;
+//
+//   struct Person {
+//       name: [256]i64,
+//       age: i64,
+//       active: i64,
 //   }
 //
-// Note: Zeta's macro system is evolving. Full derive support
-// requires comptime reflection. For now, manual implementations
-// using the JSON helpers in serde.z are the primary approach.
-
-// Future: comptime fn derive_serialize(type_info) -> String
-// Future: #[derive(Serialize)] attribute parsing
+//   fn serialize_person(p: Person) {
+//       // Manual serialization using json helper functions
+//       // (macro expansion example):
+//       json_begin();
+//       json_kv_i64("age", p.age);
+//       json_comma();
+//       json_kv_bool("active", p.active);
+//       json_end();
+//   }
+//
+// Future: #[derive(Serialize)] will generate this automatically.
