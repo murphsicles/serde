@@ -1,0 +1,86 @@
+extern fn println_i64(v: i64);
+extern fn putchar(c: i64) -> i64;
+
+// Manual string output using putchar
+fn puts(s: *const u8) {
+    let mut p = s;
+    while *p != 0 {
+        putchar(*p as i64);
+        p = p + 1;
+    }
+}
+
+// Print i64 as decimal
+fn print_i64_manual(n: i64) {
+    if n < 0 {
+        putchar(45); // '-'
+        print_i64_manual(-n);
+        return;
+    }
+    let mut d: i64 = n;
+    let mut digits: [i64; 20] = [0; 20];
+    let mut i: i64 = 0;
+    while d > 0 {
+        digits[i] = d % 10;
+        d = d / 10;
+        i = i + 1;
+    }
+    if i == 0 {
+        putchar(48); // '0'
+    } else {
+        let mut j: i64 = i - 1;
+        while j >= 0 {
+            putchar(48 + digits[j] as u8);
+            j = j - 1;
+        }
+    }
+}
+
+// Print JSON string with escaping
+fn print_json_string(s: *const u8) {
+    putchar(34); // '"'
+    let mut p = s;
+    while *p != 0 {
+        let c = *p;
+        if c == '"' as u8 {
+            putchar(92); putchar(34); // \"
+        } else if c == '\\' as u8 {
+            putchar(92); putchar(92); // \\
+        } else if c == '\n' as u8 {
+            putchar(92); putchar(110); // \n
+        } else {
+            putchar(c as i64);
+        }
+        p = p + 1;
+    }
+    putchar(34); // '"'
+}
+
+// Build a simple JSON object: {"name":"Alice","age":30}
+fn make_person_json() {
+    putchar(123); // {
+    
+    // "name":"Alice"
+    print_json_string("name");
+    putchar(58); // :
+    print_json_string("Alice");
+    putchar(44); // ,
+    
+    // "age":30
+    print_json_string("age");
+    putchar(58); // :
+    print_i64_manual(30);
+    
+    putchar(125); // }
+    putchar(10);  // newline
+}
+
+fn main() -> i64 {
+    puts("Hello from Zeta Serde!\n");
+    make_person_json();
+    
+    // Also show println_i64 works
+    println_i64(42);
+    
+    return 0;
+}

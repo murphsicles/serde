@@ -1,0 +1,30 @@
+extern fn println_i64(v: i64);
+extern fn putchar(c: i64) -> i64;
+extern fn print_str(s: &str);
+
+fn main() -> i64 {
+    // JSON-like output using individual characters
+    // Build: {"result": 42}
+    
+    putchar(123);  // {
+    
+    // "result"
+    putchar(34);  // "
+    putchar(114); // r
+    putchar(101); // e
+    putchar(115); // s
+    putchar(117); // u
+    putchar(108); // l
+    putchar(116); // t
+    putchar(34);  // "
+    
+    putchar(58);  // :
+    
+    // 42
+    println_i64(42);
+    
+    putchar(125); // }
+    putchar(10);  // newline
+    
+    return 0;
+}

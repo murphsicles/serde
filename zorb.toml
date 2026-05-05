@@ -1,0 +1,9 @@
+[package]
+name = "serde"
+version = "0.1.0"
+description = "Serialization/Deserialization framework for Zeta"
+authors = ["The Zeta Foundation"]
+license = "MIT"
+repository = "https://github.com/murphsicles/serde"
+keywords = ["serialization", "json", "serde", "zeta"]
+categories = ["data-structures", "encoding"]

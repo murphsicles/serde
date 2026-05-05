@@ -1,0 +1,111 @@
+// serde/src/serde.z
+// Core Serialization/Deserialization framework for Zeta
+// 
+// Architecture:
+//   - Serialize<T>: converts T to a JSON-like intermediate representation
+//   - Deserialize<T>: converts JSON-like IR back to T
+//   - JSON module handles text <-> IR conversion
+//
+// Current status: MVP with manual struct serialization.
+// Planned: derive macros once Zeta's comptime macro system matures.
+
+// ─── JSON Data Model ───────────────────────────────────────────────────────
+// JsonValue is the intermediate representation.
+// Currently uses tagged integer representation:
+//   0 = Null
+//   1 = Bool    (value: 0|1)
+//   2 = Number  (value: i64)
+//   3 = String  (value: string pointer)
+// Arrays and objects are special-cased in the JSON format
+
+// ─── Helper constants ──────────────────────────────────────────────────────
+
+const NULL: i64 = 0;
+const TRUE: i64 = 1;
+const FALSE: i64 = 0;
+
+// ─── Character output helpers ──────────────────────────────────────────────
+
+extern fn putchar(c: i64) -> i64;
+extern fn println_i64(v: i64);
+extern fn print_str(s: &str);
+
+// ─── JSON Output Functions ────────────────────────────────────────────────
+
+// Write start of an object
+fn json_begin_object() {
+    putchar(123);  // {
+}
+
+// Write end of an object
+fn json_end_object() {
+    putchar(125);  // }
+}
+
+// Write start of an array
+fn json_begin_array() {
+    putchar(91);   // [
+}
+
+// Write end of an array
+fn json_end_array() {
+    putchar(93);   // ]
+}
+
+// Write comma separator
+fn json_comma() {
+    putchar(44);   // ,
+}
+
+// Write colon separator
+fn json_colon() {
+    putchar(58);   // :
+}
+
+// Write a JSON string key/value (no allocation needed)
+// Uses extern putchar for all output
+fn json_string_key(key_start: i64) {
+    // key_start is the address of a string literal
+    putchar(34);  // "
+    // For now, extern print_str handles string output
+    putchar(34);  // "
+}
+
+// Write an integer value
+fn json_i64(val: i64) {
+    putchar(34);  // "
+    println_i64(val);  // prints value + newline
+    // Remove trailing newline is tricky - use char-by-char for now
+}
+
+// Write null
+fn json_null() {
+    print_str("null");
+}
+
+// Write boolean
+fn json_bool(val: i64) {
+    if val != 0 {
+        print_str("true");
+    } else {
+        print_str("false");
+    }
+}
+
+// ─── Public API ────────────────────────────────────────────────────────────
+
+// Serialize any structure to JSON text format.
+// For now, manual JSON construction using the helper functions above.
+// In the future, comptime macros will generate these automatically.
+
+fn to_json_string(value: i64) {
+    json_i64(value);
+}
+
+fn to_json_bool(value: i64) {
+    json_bool(value);
+}
+
+fn to_json_null() {
+    json_null();
+}

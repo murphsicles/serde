@@ -1,0 +1,31 @@
+// serde/src/impls.z
+// Serialization implementations for primitive Zeta types
+//
+// These provide the basic building blocks for the serialization framework.
+
+// ─── i64 Serialization ─────────────────────────────────────────────────────
+
+extern fn println_i64(v: i64);
+
+fn serialize_i64(val: i64) {
+    println_i64(val);
+}
+
+// ─── bool Serialization ────────────────────────────────────────────────────
+
+extern fn print_str(s: &str);
+
+fn serialize_bool(val: i64) {
+    if val != 0 {
+        print_str("true");
+    } else {
+        print_str("false");
+    }
+}
+
+// ─── null Serialization ────────────────────────────────────────────────────
+
+fn serialize_null() {
+    extern fn print_str(s: &str);
+    print_str("null");
+}

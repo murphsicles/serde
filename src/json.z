@@ -1,0 +1,65 @@
+// serde/src/json.z
+// JSON format serializer for Zeta
+//
+// Converts between Zeta types and JSON text format.
+// All output goes through putchar for simplicity and zero allocation.
+
+// ─── JSON Serializer ───────────────────────────────────────────────────────
+
+extern fn putchar(c: i64) -> i64;
+extern fn print_str(s: &str);
+extern fn println_i64(v: i64);
+
+// Write a JSON key-value pair: "key":value
+fn json_kv(key_ptr: i64, val: i64) {
+    putchar(34); // "
+    putchar(key_ptr as i64); // Key name (simplified)
+    // TODO: proper key name output
+    putchar(34); // "
+    putchar(58); // :
+    println_i64(val);
+}
+
+// Write a simple JSON object from raw key-value pairs
+// keys: array of string pointers
+// vals: array of i64 values
+// count: number of pairs
+fn json_object(keys_ptr: i64, vals_ptr: i64, count: i64) {
+    putchar(123); // {
+    
+    let mut i: i64 = 0;
+    while i < count {
+        if i > 0 {
+            putchar(44); // ,
+        }
+        // TODO: read key from keys_ptr + i
+        // TODO: read val from vals_ptr + i
+        putchar(34); // "
+        println_i64(i); // Placeholder: use index as key name
+        putchar(34); // "
+        putchar(58); // :
+        println_i64(i * 10); // Placeholder value
+        i = i + 1;
+    }
+    
+    putchar(125); // }
+    putchar(10);  // newline
+}
+
+// Write a JSON array of i64 values
+fn json_i64_array(values: i64, count: i64) {
+    putchar(91); // [
+    
+    let mut i: i64 = 0;
+    while i < count {
+        if i > 0 {
+            putchar(44); // ,
+        }
+        // TODO: read values[i]
+        println_i64(i); // Placeholder
+        i = i + 1;
+    }
+    
+    putchar(93); // ]
+    putchar(10); // newline
+}

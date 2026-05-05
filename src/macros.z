@@ -1,0 +1,20 @@
+// serde/src/macros.z
+// Derive macros for Serialize and Deserialize
+//
+// These macros use Zeta's macro_rules! to generate
+// Serialize/Deserialize implementations for user-defined types.
+//
+// Example usage:
+//   struct Point { x: i64, y: i64 }
+//   impl Serialize for Point {
+//       fn serialize(&self) -> JsonValue {
+//           // Auto-generated JSON serialization
+//       }
+//   }
+//
+// Note: Zeta's macro system is evolving. Full derive support
+// requires comptime reflection. For now, manual implementations
+// using the JSON helpers in serde.z are the primary approach.
+
+// Future: comptime fn derive_serialize(type_info) -> String
+// Future: #[derive(Serialize)] attribute parsing
