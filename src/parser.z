@@ -1,0 +1,97 @@
+// serde/src/parser.z — JSON Parser for Zeta
+//
+// Architecture:
+//   Parsing uses C extern functions for all I/O and storage:
+//   - serde_read_char() — read next character from input
+//   - serde_set_input(ptr) — point input at a JSON string
+//   - serde_store(idx, val) — write parsed node data
+//   - serde_load(idx) — read parsed node data
+//
+// This avoids Zeta's array-in-function-parameter limitations
+// (the current compiler uses map_get/map_insert for arrays across
+// function boundaries).
+//
+// Node format (flat array, 4 slots per node):
+//   [type, int_value, child_idx, str_idx]
+//   type: 0=null, 1=bool, 2=i64, 3=string, 4=array, 5=object
+
+// ─── Node Types ────────────────────────────────────────────────────────────
+
+const N_NULL: i64   = 0;
+const N_BOOL: i64   = 1;
+const N_I64: i64    = 2;
+const N_STR: i64    = 3;
+const N_ARRAY: i64  = 4;
+const N_OBJECT: i64 = 5;
+
+const NODE_SLOTS: i64 = 4;
+
+// ─── Helpers (no array access — pure arithmetic/logic) ─────────────────────
+
+fn is_whitespace(c: i64) -> i64 {
+    if c == 32 || c == 9 || c == 10 || c == 13 { return 1; }
+    return 0;
+}
+
+fn is_digit_char(c: i64) -> i64 {
+    if c >= 48 && c <= 57 { return 1; }
+    return 0;
+}
+
+// ─── Validation (works with extern calls only) ─────────────────────────────
+
+fn validate_json() -> i64 {
+    // Returns 1 if valid JSON, 0 otherwise
+    // Uses serde_read_char() for input
+    // No Zeta array access — only extern calls
+    
+    let mut depth: i64 = 0;
+    let mut in_str: i64 = 0;
+    let mut c: i64 = serde_read_char();
+    
+    while c != 0 {
+        if in_str != 0 {
+            if c == 92 { serde_read_char(); }
+            else if c == 34 { in_str = 0; }
+        } else {
+            if c == 34 { in_str = 1; }
+            else if c == 123 || c == 91 { depth = depth + 1; }
+            else if c == 125 || c == 93 { depth = depth - 1; }
+            else if c == 110 {
+                // null
+                if serde_read_char() != 117 || serde_read_char() != 108 || serde_read_char() != 108 {
+                    return 0;
+                }
+            }
+            else if c == 116 {
+                // true
+                if serde_read_char() != 114 || serde_read_char() != 117 || serde_read_char() != 101 {
+                    return 0;
+                }
+            }
+            else if c == 102 {
+                // false
+                if serde_read_char() != 97 || serde_read_char() != 108 || serde_read_char() != 115 || serde_read_char() != 101 {
+                    return 0;
+                }
+            }
+            else if c == 58 || c == 44 {
+                // colon or comma — expected
+            }
+            else if is_digit_char(c) != 0 || c == 45 {
+                // skip number
+                while is_digit_char(serde_read_char()) != 0 {}
+            }
+            else if is_whitespace(c) != 0 {
+                // skip whitespace
+            }
+            else {
+                return 0; // unexpected character
+            }
+        }
+        c = serde_read_char();
+    }
+    
+    if depth == 0 && in_str == 0 { return 1; }
+    return 0;
+}

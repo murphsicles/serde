@@ -1,5 +1,0 @@
-extern fn println_i64(v: i64);
-fn main() -> i64 {
-    println_i64(42);
-    return 0;
-}
