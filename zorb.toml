@@ -1,6 +1,6 @@
 [package]
 name = "serde"
-version = "0.2.0"
+version = "0.3.0"
 description = "Serialization/Deserialization framework for Zeta"
 authors = ["The Zeta Foundation"]
 license = "MIT"
