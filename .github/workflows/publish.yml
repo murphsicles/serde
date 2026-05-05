@@ -1,0 +1,31 @@
+name: Publish to Zorbs Registry
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: [self-hosted, galaxy, wsl2, x86-64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from zorb.toml
+        id: version
+        run: |
+          VERSION=$(grep '^version' zorb.toml | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing @data/serde v$VERSION"
+
+      - name: Package and publish
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          tar czf /tmp/serde.zorb zorb.toml src/ runtime.c
+          curl -s -X POST "https://zorbs.io/api/zorbs/new" \
+            -F "name=@data/serde" \
+            -F "version=$VERSION" \
+            -F "description=Serialization/Deserialization framework for Zeta" \
+            -F "license=MIT" \
+            -F "repository=https://github.com/murphsicles/serde" \
+            -F "file=@/tmp/serde.zorb" && echo "✅ Published @data/serde v$VERSION" || echo "❌ Publish failed"
