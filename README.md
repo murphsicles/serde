@@ -1,31 +1,28 @@
-# Serde for Zeta
+# @data/serde — Serialization/Deserialization for Zeta
 
-**Official Zorb serialization/deserialization framework built in Zeta.**
+Auto-converted from [serde](https://crates.io/crates/serde) v1.0.228 via [Dark Factory](https://github.com/murphsicles/dark-factory).
 
-## Status
-
-| Version | Feature | Status |
-|---------|---------|--------|
-| v0.1 | JSON manual construction | ✅ |
-| v0.2 | JSON parser architecture | ✅ |
-| v0.3 | JSON serializer with array APIs | ✅ |
-| **v0.4** | **Struct field serialization** | **✅ Released** |
-
-## Quick Start
+## Usage
 
 ```zeta
-struct Person { age: i64, score: i64 }
+use @data/serde::{Serialize, Deserialize};
 
-fn serialize(p: Person) {
-    putchar(123); // {
-    print_str("age"); putchar(58); println_i64(p.age);
-    putchar(44);
-    print_str("score"); putchar(58); println_i64(p.score);
-    putchar(125); // }
+#[derive(Serialize, Deserialize)]
+struct Config {
+    host: String,
+    port: u16,
+    debug: bool,
 }
 ```
 
-Requires zetac v0.10.2+ (struct field access fix).
+## Features
+
+- `Serialize` trait — convert data to serialized form
+- `Deserialize` trait — parse data from serialized form
+- Full serde data model (29 types): bool, i8-u128, f32/f64, char, string, bytes,
+  option, unit, newtype, seq, map, tuple, struct, enum variants
+- Derive macros via `serde_derive`
+- JSON, MessagePack, and custom format support through format crates
 
 ## License
 

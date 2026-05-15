@@ -1,0 +1,17 @@
+// Auto-converted from /tmp/df-serde-1.0.228/serde-1.0.228/src/lib.rs
+
+// [unsupported item]
+#[cfg(docsrs)]
+#[macro_use]
+#[path = "core/crate_root.rs"]
+mod crate_root;
+#[cfg(docsrs)]
+#[macro_use]
+#[path = "core/macros.rs"]
+mod macros;
+// [unsupported item]
+// [unsupported item]
+mod integer128;
+// [unsupported item]
+#[doc = " Derive macro available if serde is built with `features = [\"derive\"]`."] #[cfg(feature = "serde_derive")] #[cfg_attr(docsrs, doc(cfg(feature = "derive")))] pub use serde_derive::{ Deserialize, Serialize };
+// [unsupported item]

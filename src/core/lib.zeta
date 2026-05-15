@@ -1,0 +1,9 @@
+// Auto-converted from /tmp/df-serde-1.0.228/serde-1.0.228/src/core/lib.rs
+
+// [unsupported item]
+#[macro_use]
+mod crate_root;
+#[macro_use]
+mod macros;
+// [unsupported item]
+// [unsupported item]

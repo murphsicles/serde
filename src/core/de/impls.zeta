@@ -1,0 +1,1169 @@
+// Auto-converted from /tmp/df-serde-1.0.228/serde-1.0.228/src/core/de/impls.rs
+
+use crate::lib::*;
+use crate::de::{ Deserialize, Deserializer, EnumAccess, Error, MapAccess, SeqAccess, Unexpected, VariantAccess, Visitor };
+use crate::private::{ self, InPlaceSeed };
+#[cfg(any(feature = "std", feature = "alloc"))] use crate::private::size_hint;
+struct UnitVisitor {
+}
+
+impl<de> Visitor for UnitVisitor {
+ type Value = ();
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("unit")
+ }
+ 
+ fn visit_unit(self) -> Result<Self::Value, E> {
+ Ok(())
+ }
+ 
+}
+
+impl<de> Deserialize for() {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_unit(UnitVisitor)
+ }
+ 
+}
+
+#[cfg(feature = "unstable")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
+impl<de> Deserialize for ! {
+ fn deserialize(_deserializer: D) -> Result<Self, D::Error> {
+ Err(Error::custom("cannot deserialize `!`"))
+ }
+ 
+}
+
+struct BoolVisitor {
+}
+
+impl<de> Visitor for BoolVisitor {
+ type Value = bool;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("a boolean")
+ }
+ 
+ fn visit_bool(self, v: bool) -> Result<Self::Value, E> {
+ Ok(v)
+ }
+ 
+}
+
+impl<de> Deserialize for bool {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_bool(BoolVisitor)
+ }
+ 
+}
+
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+struct CharVisitor {
+}
+
+impl<de> Visitor for CharVisitor {
+ type Value = char;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("a character")
+ }
+ 
+ fn visit_char(self, v: char) -> Result<Self::Value, E> {
+ Ok(v)
+ }
+ 
+ fn visit_str(self, v: &str) -> Result<Self::Value, E> {
+ let mut iter = v.chars();
+ match(iter.next(), iter.next()) { (Some(c), None) => Ok(c), _ => Err(Error::invalid_value(Unexpected::Str(v), &self)) }
+ }
+ 
+}
+
+impl<de> Deserialize for char {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_char(CharVisitor)
+ }
+ 
+}
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+struct StringVisitor {
+}
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+struct StringInPlaceVisitor<a> {
+ (&mut String),
+}
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+impl<de> Visitor for StringVisitor {
+ type Value = String;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("a string")
+ }
+ 
+ fn visit_str(self, v: &str) -> Result<Self::Value, E> {
+ Ok(v.to_owned())
+ }
+ 
+ fn visit_string(self, v: String) -> Result<Self::Value, E> {
+ Ok(v)
+ }
+ 
+ fn visit_bytes(self, v: &[u8]) -> Result<Self::Value, E> {
+ match str::from_utf8(v) { Ok(s) => Ok(s.to_owned()), Err(_) => Err(Error::invalid_value(Unexpected::Bytes(v), &self)) }
+ }
+ 
+ fn visit_byte_buf(self, v: Vec<u8>) -> Result<Self::Value, E> {
+ match String::from_utf8(v) { Ok(s) => Ok(s), Err(e) => Err(Error::invalid_value(Unexpected::Bytes(&e.into_bytes()), &self )) }
+ }
+ 
+}
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+impl<a, de> Visitor for StringInPlaceVisitor<'a> {
+ type Value = ();
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("a string")
+ }
+ 
+ fn visit_str(self, v: &str) -> Result<Self::Value, E> {
+ self.0.clear();
+ self.0.push_str(v);
+ Ok(())
+ }
+ 
+ fn visit_string(self, v: String) -> Result<Self::Value, E> {
+ *self.0 = v;
+ Ok(())
+ }
+ 
+ fn visit_bytes(self, v: &[u8]) -> Result<Self::Value, E> {
+ match str::from_utf8(v) { Ok(s) => { self.0.clear(); self.0.push_str(s); Ok(()) } Err(_) => Err(Error::invalid_value(Unexpected::Bytes(v), &self)) }
+ }
+ 
+ fn visit_byte_buf(self, v: Vec<u8>) -> Result<Self::Value, E> {
+ match String::from_utf8(v) { Ok(s) => { *self.0 = s; Ok(()) } Err(e) => Err(Error::invalid_value(Unexpected::Bytes(&e.into_bytes()), &self )) }
+ }
+ 
+}
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "std", feature = "alloc"))))]
+impl<de> Deserialize for String {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_string(StringVisitor)
+ }
+ 
+ fn deserialize_in_place(deserializer: D, place: &mut Self) -> Result<(), D::Error> {
+ deserializer.deserialize_string(StringInPlaceVisitor(place))
+ }
+ 
+}
+
+struct StrVisitor {
+}
+
+impl<a> Visitor for StrVisitor {
+ type Value = &str;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("a borrowed string")
+ }
+ 
+ fn visit_borrowed_str(self, v: &str) -> Result<Self::Value, E> {
+ Ok(v)
+ }
+ 
+ fn visit_borrowed_bytes(self, v: &[u8]) -> Result<Self::Value, E> {
+ str::from_utf8(v).map_err(| _ | Error::invalid_value(Unexpected::Bytes(v), &self))
+ }
+ 
+}
+
+impl<de, a> Deserialize for &str {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_str(StrVisitor)
+ }
+ 
+}
+
+struct BytesVisitor {
+}
+
+impl<a> Visitor for BytesVisitor {
+ type Value = &[u8];
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("a borrowed byte array")
+ }
+ 
+ fn visit_borrowed_bytes(self, v: &[u8]) -> Result<Self::Value, E> {
+ Ok(v)
+ }
+ 
+ fn visit_borrowed_str(self, v: &str) -> Result<Self::Value, E> {
+ Ok(v.as_bytes())
+ }
+ 
+}
+
+impl<de, a> Deserialize for &[u8] {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_bytes(BytesVisitor)
+ }
+ 
+}
+
+#[cfg(any(feature = "std", all(not(no_core_cstr), feature = "alloc")))]
+struct CStringVisitor {
+}
+
+#[cfg(any(feature = "std", all(not(no_core_cstr), feature = "alloc")))]
+impl<de> Visitor for CStringVisitor {
+ type Value = CString;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("byte array")
+ }
+ 
+ fn visit_seq(self, seq: A) -> Result<Self::Value, A::Error> {
+ let capacity = size_hint::cautious::<u8>(seq.size_hint());
+ let mut values = Vec::<u8>::with_capacity(capacity);
+ while let Some(value) = tri!(seq.next_element()) { values.push(value); }
+ CString::new(values).map_err(Error::custom)
+ }
+ 
+ fn visit_bytes(self, v: &[u8]) -> Result<Self::Value, E> {
+ CString::new(v).map_err(Error::custom)
+ }
+ 
+ fn visit_byte_buf(self, v: Vec<u8>) -> Result<Self::Value, E> {
+ CString::new(v).map_err(Error::custom)
+ }
+ 
+ fn visit_str(self, v: &str) -> Result<Self::Value, E> {
+ CString::new(v).map_err(Error::custom)
+ }
+ 
+ fn visit_string(self, v: String) -> Result<Self::Value, E> {
+ CString::new(v).map_err(Error::custom)
+ }
+ 
+}
+
+#[cfg(any(feature = "std", all(not(no_core_cstr), feature = "alloc")))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "std", feature = "alloc"))))]
+impl<de> Deserialize for CString {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_byte_buf(CStringVisitor)
+ }
+ 
+}
+
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+struct OptionVisitor<T> {
+ marker: PhantomData<T>,
+}
+
+impl<de, T> Visitor for OptionVisitor<T> where T: Deserialize<de> {
+ type Value = Option<T>;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("option")
+ }
+ 
+ fn visit_unit(self) -> Result<Self::Value, E> {
+ Ok(None)
+ }
+ 
+ fn visit_none(self) -> Result<Self::Value, E> {
+ Ok(None)
+ }
+ 
+ fn visit_some(self, deserializer: D) -> Result<Self::Value, D::Error> {
+ T::deserialize(deserializer).map(Some)
+ }
+ 
+ fn __private_visit_untagged_option(self, deserializer: D) -> Result<Self::Value, ()> {
+ Ok(T::deserialize(deserializer).ok())
+ }
+ 
+}
+
+impl<de, T> Deserialize for Option<T> where T: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_option(OptionVisitor { marker: PhantomData })
+ }
+ 
+}
+
+struct PhantomDataVisitor<T: Sized> {
+ marker: PhantomData<T>,
+}
+
+impl<de, T> Visitor for PhantomDataVisitor<T> where T: Sized {
+ type Value = PhantomData<T>;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("unit")
+ }
+ 
+ fn visit_unit(self) -> Result<Self::Value, E> {
+ Ok(PhantomData)
+ }
+ 
+}
+
+impl<de, T> Deserialize for PhantomData<T> where T: Sized {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ let visitor = PhantomDataVisitor { marker: PhantomData };
+ deserializer.deserialize_unit_struct("PhantomData", visitor)
+ }
+ 
+}
+
+// [unsupported item]
+#[cfg(any(feature = "std", feature = "alloc"))]
+fn nop_reserve<T>(_seq: T, _n: usize) {
+}
+
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+#[cfg(any(feature = "std", feature = "alloc"))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "std", feature = "alloc"))))]
+impl<de, T> Deserialize for Vec<T> where T: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ struct VecVisitor<T> {
+ marker: PhantomData<T>,
+ }
+ 
+ impl<de, T> Visitor for VecVisitor<T> where T: Deserialize<de> {
+ type Value = Vec<T>;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("a sequence")
+ }
+ 
+ fn visit_seq(self, seq: A) -> Result<Self::Value, A::Error> {
+ let capacity = size_hint::cautious::<T>(seq.size_hint());
+ let mut values = Vec::<T>::with_capacity(capacity);
+ while let Some(value) = tri!(seq.next_element()) { values.push(value); }
+ Ok(values)
+ }
+ 
+ }
+ 
+ let visitor = VecVisitor { marker: PhantomData };
+ deserializer.deserialize_seq(visitor)
+ }
+ 
+ fn deserialize_in_place(deserializer: D, place: &mut Self) -> Result<(), D::Error> {
+ struct VecInPlaceVisitor<a, T: a> {
+ (&mut Vec<T>),
+ }
+ 
+ impl<a, de, T> Visitor for VecInPlaceVisitor<'a, T> where T: Deserialize<de> {
+ type Value = ();
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("a sequence")
+ }
+ 
+ fn visit_seq(self, seq: A) -> Result<Self::Value, A::Error> {
+ let hint = size_hint::cautious::<T>(seq.size_hint());
+ if let Some(additional) = hint.checked_sub(self.0.len()) { self.0.reserve(additional); }
+ for i in 0 .. self.0.len() { let next = { let next_place = InPlaceSeed(&mut self.0 [i]); tri!(seq.next_element_seed(next_place)) }; if next.is_none() { self.0.truncate(i); return Ok(()); } }
+ while let Some(value) = tri!(seq.next_element()) { self.0.push(value); }
+ Ok(())
+ }
+ 
+ }
+ 
+ deserializer.deserialize_seq(VecInPlaceVisitor(place))
+ }
+ 
+}
+
+struct ArrayVisitor<A> {
+ marker: PhantomData<A>,
+}
+
+struct ArrayInPlaceVisitor<a, A: a> {
+ (&mut A),
+}
+
+impl<A> ArrayVisitor<A> {
+ fn new() -> Self {
+ ArrayVisitor { marker: PhantomData }
+ }
+ 
+}
+
+impl<de, T> Visitor for ArrayVisitor<[T; 0]> {
+ type Value = [T; 0];
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("an empty array")
+ }
+ 
+ fn visit_seq(self, _: A) -> Result<Self::Value, A::Error> {
+ Ok([])
+ }
+ 
+}
+
+impl<de, T> Deserialize for [T; 0] {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_tuple(0, ArrayVisitor::<[T; 0]>::new())
+ }
+ 
+}
+
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+#[cfg_attr(docsrs, doc(fake_variadic))]
+#[cfg_attr(docsrs, doc = "This trait is implemented for tuples up to 16 items long.")]
+impl<de, T> Deserialize for(T) where T: Deserialize<de> {
+ // [unsupported impl item]
+}
+
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+#[cfg(any(feature = "std", not(no_core_net)))]
+impl<de> Deserialize for net::IpAddr {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ if deserializer.is_human_readable() { deserializer.deserialize_str(FromStrVisitor::new("IP address")) } else { use crate::lib::net::IpAddr; deserialize_enum ! { IpAddr IpAddrKind(V4; b"V4"; 0, V6; b"V6"; 1) "`V4` or `V6`", deserializer } }
+ }
+ 
+}
+
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+#[cfg(any(feature = "std", not(no_core_net)))]
+impl<de> Deserialize for net::SocketAddr {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ if deserializer.is_human_readable() { deserializer.deserialize_str(FromStrVisitor::new("socket address")) } else { use crate::lib::net::SocketAddr; deserialize_enum ! { SocketAddr SocketAddrKind(V4; b"V4"; 0, V6; b"V6"; 1) "`V4` or `V6`", deserializer } }
+ }
+ 
+}
+
+// [unsupported item]
+// [unsupported item]
+#[cfg(feature = "std")]
+struct PathVisitor {
+}
+
+#[cfg(feature = "std")]
+impl<a> Visitor for PathVisitor {
+ type Value = &Path;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("a borrowed path")
+ }
+ 
+ fn visit_borrowed_str(self, v: &str) -> Result<Self::Value, E> {
+ Ok(v.as_ref())
+ }
+ 
+ fn visit_borrowed_bytes(self, v: &[u8]) -> Result<Self::Value, E> {
+ str::from_utf8(v).map(AsRef::as_ref).map_err(| _ | Error::invalid_value(Unexpected::Bytes(v), &self))
+ }
+ 
+}
+
+#[cfg(feature = "std")]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+impl<de, a> Deserialize for &Path {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_str(PathVisitor)
+ }
+ 
+}
+
+#[cfg(feature = "std")]
+struct PathBufVisitor {
+}
+
+#[cfg(feature = "std")]
+impl<de> Visitor for PathBufVisitor {
+ type Value = PathBuf;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("path string")
+ }
+ 
+ fn visit_str(self, v: &str) -> Result<Self::Value, E> {
+ Ok(From::from(v))
+ }
+ 
+ fn visit_string(self, v: String) -> Result<Self::Value, E> {
+ Ok(From::from(v))
+ }
+ 
+ fn visit_bytes(self, v: &[u8]) -> Result<Self::Value, E> {
+ str::from_utf8(v).map(From::from).map_err(| _ | Error::invalid_value(Unexpected::Bytes(v), &self))
+ }
+ 
+ fn visit_byte_buf(self, v: Vec<u8>) -> Result<Self::Value, E> {
+ String::from_utf8(v).map(From::from).map_err(| e | Error::invalid_value(Unexpected::Bytes(&e.into_bytes()), &self))
+ }
+ 
+}
+
+#[cfg(feature = "std")]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+impl<de> Deserialize for PathBuf {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_string(PathBufVisitor)
+ }
+ 
+}
+
+// [unsupported item]
+// [unsupported item]
+#[cfg(all(feature = "std", any(unix, windows)))]
+struct OsStringVisitor {
+}
+
+#[cfg(all(feature = "std", any(unix, windows)))]
+impl<de> Visitor for OsStringVisitor {
+ type Value = OsString;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("os string")
+ }
+ 
+ fn visit_enum(self, data: A) -> Result<Self::Value, A::Error> {
+ use std::os::unix::ffi::OsStringExt;
+ match tri!(data.variant()) { (OsStringKind::Unix, v) => v.newtype_variant().map(OsString::from_vec), (OsStringKind::Windows, _) => Err(Error::custom("cannot deserialize Windows OS string on Unix" )) }
+ }
+ 
+ fn visit_enum(self, data: A) -> Result<Self::Value, A::Error> {
+ use std::os::windows::ffi::OsStringExt;
+ match tri!(data.variant()) { (OsStringKind::Windows, v) => v.newtype_variant::<Vec<u16> >().map(| vec | OsString::from_wide(&vec)), (OsStringKind::Unix, _) => Err(Error::custom("cannot deserialize Unix OS string on Windows" )) }
+ }
+ 
+}
+
+#[cfg(all(feature = "std", any(unix, windows)))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "std", any(unix, windows)))))]
+impl<de> Deserialize for OsString {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ deserializer.deserialize_enum("OsString", OSSTR_VARIANTS, OsStringVisitor)
+ }
+ 
+}
+
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+#[cfg(any(feature = "std", feature = "alloc"))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "std", feature = "alloc"))))]
+impl<de, a, T> Deserialize for Cow<'a, T> where T: Sized + ToOwned, T::Owned: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ T::Owned::deserialize(deserializer).map(Cow::Owned)
+ }
+ 
+}
+
+/// This impl requires the [`"rc"`] Cargo feature of Serde. The resulting
+/// `Weak<T>` has a reference count of 0 and cannot be upgraded.
+/// 
+/// [`"rc"`]: https://serde.rs/feature-flags.html#-features-rc
+#[cfg(all(feature = "rc", any(feature = "std", feature = "alloc")))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "rc", any(feature = "std", feature = "alloc")))))]
+impl<de, T> Deserialize for RcWeak<T> where T: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ tri!(Option::<T>::deserialize(deserializer));
+ Ok(RcWeak::new())
+ }
+ 
+}
+
+/// This impl requires the [`"rc"`] Cargo feature of Serde. The resulting
+/// `Weak<T>` has a reference count of 0 and cannot be upgraded.
+/// 
+/// [`"rc"`]: https://serde.rs/feature-flags.html#-features-rc
+#[cfg(all(feature = "rc", any(feature = "std", feature = "alloc")))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "rc", any(feature = "std", feature = "alloc")))))]
+impl<de, T> Deserialize for ArcWeak<T> where T: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ tri!(Option::<T>::deserialize(deserializer));
+ Ok(ArcWeak::new())
+ }
+ 
+}
+
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+impl<de, T> Deserialize for Cell<T> where T: Deserialize<de> + Copy {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ T::deserialize(deserializer).map(Cell::new)
+ }
+ 
+}
+
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+impl<de> Deserialize for Duration {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ enum Field {
+ Secs,
+ Nanos,
+ }
+ 
+ impl<de> Deserialize for Field {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ struct FieldVisitor {
+ }
+ 
+ impl<de> Visitor for FieldVisitor {
+ type Value = Field;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("`secs` or `nanos`")
+ }
+ 
+ fn visit_str(self, value: &str) -> Result<Self::Value, E> {
+ match value { "secs" => Ok(Field::Secs), "nanos" => Ok(Field::Nanos), _ => Err(Error::unknown_field(value, FIELDS)) }
+ }
+ 
+ fn visit_bytes(self, value: &[u8]) -> Result<Self::Value, E> {
+ match value { b"secs" => Ok(Field::Secs), b"nanos" => Ok(Field::Nanos), _ => { let value = private::string::from_utf8_lossy(value); Err(Error::unknown_field(&*value, FIELDS)) } }
+ }
+ 
+ }
+ 
+ deserializer.deserialize_identifier(FieldVisitor)
+ }
+ 
+ }
+ 
+ fn check_overflow<E>(secs: u64, nanos: u32) -> Result<(), E> where E: Error {
+ static NANOS_PER_SEC: u32 = 1_000_000_000;
+ 
+ match secs.checked_add((nanos / NANOS_PER_SEC) as u64) { Some(_) => Ok(()), None => Err(E::custom("overflow deserializing Duration")) }
+ }
+ 
+ struct DurationVisitor {
+ }
+ 
+ impl<de> Visitor for DurationVisitor {
+ type Value = Duration;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("struct Duration")
+ }
+ 
+ fn visit_seq(self, seq: A) -> Result<Self::Value, A::Error> {
+ let _ = match tri!(seq.next_element()) { Some(value) => value, None => { return Err(Error::invalid_length(0, &self)); } };
+ let _ = match tri!(seq.next_element()) { Some(value) => value, None => { return Err(Error::invalid_length(1, &self)); } };
+ tri!(check_overflow(secs, nanos));
+ Ok(Duration::new(secs, nanos))
+ }
+ 
+ fn visit_map(self, map: A) -> Result<Self::Value, A::Error> {
+ let _ = None;
+ let _ = None;
+ while let Some(key) = tri!(map.next_key()) { match key { Field::Secs => { if secs.is_some() { return Err(< A::Error as Error >::duplicate_field("secs")); } secs = Some(tri!(map.next_value())); } Field::Nanos => { if nanos.is_some() { return Err(< A::Error as Error >::duplicate_field("nanos")); } nanos = Some(tri!(map.next_value())); } } }
+ let secs = match secs { Some(secs) => secs, None => return Err(< A::Error as Error >::missing_field("secs")) };
+ let nanos = match nanos { Some(nanos) => nanos, None => return Err(< A::Error as Error >::missing_field("nanos")) };
+ tri!(check_overflow(secs, nanos));
+ Ok(Duration::new(secs, nanos))
+ }
+ 
+ }
+ 
+ const FIELDS: &[&str] = & ["secs", "nanos"];
+ 
+ deserializer.deserialize_struct("Duration", FIELDS, DurationVisitor)
+ }
+ 
+}
+
+#[cfg(feature = "std")]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+impl<de> Deserialize for SystemTime {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ enum Field {
+ Secs,
+ Nanos,
+ }
+ 
+ impl<de> Deserialize for Field {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ struct FieldVisitor {
+ }
+ 
+ impl<de> Visitor for FieldVisitor {
+ type Value = Field;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("`secs_since_epoch` or `nanos_since_epoch`")
+ }
+ 
+ fn visit_str(self, value: &str) -> Result<Self::Value, E> {
+ match value { "secs_since_epoch" => Ok(Field::Secs), "nanos_since_epoch" => Ok(Field::Nanos), _ => Err(Error::unknown_field(value, FIELDS)) }
+ }
+ 
+ fn visit_bytes(self, value: &[u8]) -> Result<Self::Value, E> {
+ match value { b"secs_since_epoch" => Ok(Field::Secs), b"nanos_since_epoch" => Ok(Field::Nanos), _ => { let value = String::from_utf8_lossy(value); Err(Error::unknown_field(&value, FIELDS)) } }
+ }
+ 
+ }
+ 
+ deserializer.deserialize_identifier(FieldVisitor)
+ }
+ 
+ }
+ 
+ fn check_overflow<E>(secs: u64, nanos: u32) -> Result<(), E> where E: Error {
+ static NANOS_PER_SEC: u32 = 1_000_000_000;
+ 
+ match secs.checked_add((nanos / NANOS_PER_SEC) as u64) { Some(_) => Ok(()), None => Err(E::custom("overflow deserializing SystemTime epoch offset")) }
+ }
+ 
+ struct DurationVisitor {
+ }
+ 
+ impl<de> Visitor for DurationVisitor {
+ type Value = Duration;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("struct SystemTime")
+ }
+ 
+ fn visit_seq(self, seq: A) -> Result<Self::Value, A::Error> {
+ let _ = match tri!(seq.next_element()) { Some(value) => value, None => { return Err(Error::invalid_length(0, &self)); } };
+ let _ = match tri!(seq.next_element()) { Some(value) => value, None => { return Err(Error::invalid_length(1, &self)); } };
+ tri!(check_overflow(secs, nanos));
+ Ok(Duration::new(secs, nanos))
+ }
+ 
+ fn visit_map(self, map: A) -> Result<Self::Value, A::Error> {
+ let _ = None;
+ let _ = None;
+ while let Some(key) = tri!(map.next_key()) { match key { Field::Secs => { if secs.is_some() { return Err(< A::Error as Error >::duplicate_field("secs_since_epoch" )); } secs = Some(tri!(map.next_value())); } Field::Nanos => { if nanos.is_some() { return Err(< A::Error as Error >::duplicate_field("nanos_since_epoch" )); } nanos = Some(tri!(map.next_value())); } } }
+ let secs = match secs { Some(secs) => secs, None => return Err(< A::Error as Error >::missing_field("secs_since_epoch")) };
+ let nanos = match nanos { Some(nanos) => nanos, None => return Err(< A::Error as Error >::missing_field("nanos_since_epoch")) };
+ tri!(check_overflow(secs, nanos));
+ Ok(Duration::new(secs, nanos))
+ }
+ 
+ }
+ 
+ const FIELDS: &[&str] = & ["secs_since_epoch", "nanos_since_epoch"];
+ 
+ let duration = tri!(deserializer.deserialize_struct("SystemTime", FIELDS, DurationVisitor));
+ UNIX_EPOCH.checked_add(duration).ok_or_else(| | D::Error::custom("overflow deserializing SystemTime"))
+ }
+ 
+}
+
+impl<de, Idx> Deserialize for Range<Idx> where Idx: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ let _ = tri!(deserializer.deserialize_struct("Range", range::FIELDS, range::RangeVisitor { expecting: "struct Range", phantom: PhantomData } ));
+ Ok(start .. end)
+ }
+ 
+}
+
+impl<de, Idx> Deserialize for RangeInclusive<Idx> where Idx: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ let _ = tri!(deserializer.deserialize_struct("RangeInclusive", range::FIELDS, range::RangeVisitor { expecting: "struct RangeInclusive", phantom: PhantomData } ));
+ Ok(RangeInclusive::new(start, end))
+ }
+ 
+}
+
+mod range {
+ use crate::lib::*;
+ use crate::de::{ Deserialize, Deserializer, Error, MapAccess, SeqAccess, Visitor };
+ use crate::private;
+ pub const FIELDS: &[&str] = & ["start", "end"];
+ 
+ enum Field {
+ Start,
+ End,
+ }
+ 
+ impl<de> Deserialize for Field {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ struct FieldVisitor {
+ }
+ 
+ impl<de> Visitor for FieldVisitor {
+ type Value = Field;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("`start` or `end`")
+ }
+ 
+ fn visit_str(self, value: &str) -> Result<Self::Value, E> {
+ match value { "start" => Ok(Field::Start), "end" => Ok(Field::End), _ => Err(Error::unknown_field(value, FIELDS)) }
+ }
+ 
+ fn visit_bytes(self, value: &[u8]) -> Result<Self::Value, E> {
+ match value { b"start" => Ok(Field::Start), b"end" => Ok(Field::End), _ => { let value = private::string::from_utf8_lossy(value); Err(Error::unknown_field(&*value, FIELDS)) } }
+ }
+ 
+ }
+ 
+ deserializer.deserialize_identifier(FieldVisitor)
+ }
+ 
+ }
+ 
+ pub struct RangeVisitor<Idx> {
+ pub expecting: &str,
+ pub phantom: PhantomData<Idx>,
+ }
+ 
+ impl<de, Idx> Visitor for RangeVisitor<Idx> where Idx: Deserialize<de> {
+ type Value = (Idx, Idx);
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str(self.expecting)
+ }
+ 
+ fn visit_seq(self, seq: A) -> Result<Self::Value, A::Error> {
+ let _ = match tri!(seq.next_element()) { Some(value) => value, None => { return Err(Error::invalid_length(0, &self)); } };
+ let _ = match tri!(seq.next_element()) { Some(value) => value, None => { return Err(Error::invalid_length(1, &self)); } };
+ Ok((start, end))
+ }
+ 
+ fn visit_map(self, map: A) -> Result<Self::Value, A::Error> {
+ let _ = None;
+ let _ = None;
+ while let Some(key) = tri!(map.next_key()) { match key { Field::Start => { if start.is_some() { return Err(< A::Error as Error >::duplicate_field("start")); } start = Some(tri!(map.next_value())); } Field::End => { if end.is_some() { return Err(< A::Error as Error >::duplicate_field("end")); } end = Some(tri!(map.next_value())); } } }
+ let start = match start { Some(start) => start, None => return Err(< A::Error as Error >::missing_field("start")) };
+ let end = match end { Some(end) => end, None => return Err(< A::Error as Error >::missing_field("end")) };
+ Ok((start, end))
+ }
+ 
+ }
+ 
+}
+
+impl<de, Idx> Deserialize for RangeFrom<Idx> where Idx: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ let start = tri!(deserializer.deserialize_struct("RangeFrom", range_from::FIELDS, range_from::RangeFromVisitor { expecting: "struct RangeFrom", phantom: PhantomData } ));
+ Ok(start ..)
+ }
+ 
+}
+
+mod range_from {
+ use crate::lib::*;
+ use crate::de::{ Deserialize, Deserializer, Error, MapAccess, SeqAccess, Visitor };
+ use crate::private;
+ pub const FIELDS: &[&str] = & ["start"];
+ 
+ enum Field {
+ Start,
+ }
+ 
+ impl<de> Deserialize for Field {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ struct FieldVisitor {
+ }
+ 
+ impl<de> Visitor for FieldVisitor {
+ type Value = Field;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("`start`")
+ }
+ 
+ fn visit_str(self, value: &str) -> Result<Self::Value, E> {
+ match value { "start" => Ok(Field::Start), _ => Err(Error::unknown_field(value, FIELDS)) }
+ }
+ 
+ fn visit_bytes(self, value: &[u8]) -> Result<Self::Value, E> {
+ match value { b"start" => Ok(Field::Start), _ => { let value = private::string::from_utf8_lossy(value); Err(Error::unknown_field(&*value, FIELDS)) } }
+ }
+ 
+ }
+ 
+ deserializer.deserialize_identifier(FieldVisitor)
+ }
+ 
+ }
+ 
+ pub struct RangeFromVisitor<Idx> {
+ pub expecting: &str,
+ pub phantom: PhantomData<Idx>,
+ }
+ 
+ impl<de, Idx> Visitor for RangeFromVisitor<Idx> where Idx: Deserialize<de> {
+ type Value = Idx;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str(self.expecting)
+ }
+ 
+ fn visit_seq(self, seq: A) -> Result<Self::Value, A::Error> {
+ let _ = match tri!(seq.next_element()) { Some(value) => value, None => { return Err(Error::invalid_length(0, &self)); } };
+ Ok(start)
+ }
+ 
+ fn visit_map(self, map: A) -> Result<Self::Value, A::Error> {
+ let _ = None;
+ while let Some(key) = tri!(map.next_key()) { match key { Field::Start => { if start.is_some() { return Err(< A::Error as Error >::duplicate_field("start")); } start = Some(tri!(map.next_value())); } } }
+ let start = match start { Some(start) => start, None => return Err(< A::Error as Error >::missing_field("start")) };
+ Ok(start)
+ }
+ 
+ }
+ 
+}
+
+impl<de, Idx> Deserialize for RangeTo<Idx> where Idx: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ let end = tri!(deserializer.deserialize_struct("RangeTo", range_to::FIELDS, range_to::RangeToVisitor { expecting: "struct RangeTo", phantom: PhantomData } ));
+ Ok(.. end)
+ }
+ 
+}
+
+mod range_to {
+ use crate::lib::*;
+ use crate::de::{ Deserialize, Deserializer, Error, MapAccess, SeqAccess, Visitor };
+ use crate::private;
+ pub const FIELDS: &[&str] = & ["end"];
+ 
+ enum Field {
+ End,
+ }
+ 
+ impl<de> Deserialize for Field {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ struct FieldVisitor {
+ }
+ 
+ impl<de> Visitor for FieldVisitor {
+ type Value = Field;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("`end`")
+ }
+ 
+ fn visit_str(self, value: &str) -> Result<Self::Value, E> {
+ match value { "end" => Ok(Field::End), _ => Err(Error::unknown_field(value, FIELDS)) }
+ }
+ 
+ fn visit_bytes(self, value: &[u8]) -> Result<Self::Value, E> {
+ match value { b"end" => Ok(Field::End), _ => { let value = private::string::from_utf8_lossy(value); Err(Error::unknown_field(&*value, FIELDS)) } }
+ }
+ 
+ }
+ 
+ deserializer.deserialize_identifier(FieldVisitor)
+ }
+ 
+ }
+ 
+ pub struct RangeToVisitor<Idx> {
+ pub expecting: &str,
+ pub phantom: PhantomData<Idx>,
+ }
+ 
+ impl<de, Idx> Visitor for RangeToVisitor<Idx> where Idx: Deserialize<de> {
+ type Value = Idx;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str(self.expecting)
+ }
+ 
+ fn visit_seq(self, seq: A) -> Result<Self::Value, A::Error> {
+ let _ = match tri!(seq.next_element()) { Some(value) => value, None => { return Err(Error::invalid_length(0, &self)); } };
+ Ok(end)
+ }
+ 
+ fn visit_map(self, map: A) -> Result<Self::Value, A::Error> {
+ let _ = None;
+ while let Some(key) = tri!(map.next_key()) { match key { Field::End => { if end.is_some() { return Err(< A::Error as Error >::duplicate_field("end")); } end = Some(tri!(map.next_value())); } } }
+ let end = match end { Some(end) => end, None => return Err(< A::Error as Error >::missing_field("end")) };
+ Ok(end)
+ }
+ 
+ }
+ 
+}
+
+impl<de, T> Deserialize for Bound<T> where T: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ enum Field {
+ Unbounded,
+ Included,
+ Excluded,
+ }
+ 
+ impl<de> Deserialize for Field {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ struct FieldVisitor {
+ }
+ 
+ impl<de> Visitor for FieldVisitor {
+ type Value = Field;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("`Unbounded`, `Included` or `Excluded`")
+ }
+ 
+ fn visit_u64(self, value: u64) -> Result<Self::Value, E> {
+ match value { 0 => Ok(Field::Unbounded), 1 => Ok(Field::Included), 2 => Ok(Field::Excluded), _ => Err(Error::invalid_value(Unexpected::Unsigned(value), &self)) }
+ }
+ 
+ fn visit_str(self, value: &str) -> Result<Self::Value, E> {
+ match value { "Unbounded" => Ok(Field::Unbounded), "Included" => Ok(Field::Included), "Excluded" => Ok(Field::Excluded), _ => Err(Error::unknown_variant(value, VARIANTS)) }
+ }
+ 
+ fn visit_bytes(self, value: &[u8]) -> Result<Self::Value, E> {
+ match value { b"Unbounded" => Ok(Field::Unbounded), b"Included" => Ok(Field::Included), b"Excluded" => Ok(Field::Excluded), _ => match str::from_utf8(value) { Ok(value) => Err(Error::unknown_variant(value, VARIANTS)), Err(_) => { Err(Error::invalid_value(Unexpected::Bytes(value), &self)) } } }
+ }
+ 
+ }
+ 
+ deserializer.deserialize_identifier(FieldVisitor)
+ }
+ 
+ }
+ 
+ struct BoundVisitor<T> {
+ (PhantomData<Bound<T>>),
+ }
+ 
+ impl<de, T> Visitor for BoundVisitor<T> where T: Deserialize<de> {
+ type Value = Bound<T>;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("enum Bound")
+ }
+ 
+ fn visit_enum(self, data: A) -> Result<Self::Value, A::Error> {
+ match tri!(data.variant()) { (Field::Unbounded, v) => v.unit_variant().map(| () | Bound::Unbounded), (Field::Included, v) => v.newtype_variant().map(Bound::Included), (Field::Excluded, v) => v.newtype_variant().map(Bound::Excluded) }
+ }
+ 
+ }
+ 
+ const VARIANTS: &[&str] = & ["Unbounded", "Included", "Excluded"];
+ 
+ deserializer.deserialize_enum("Bound", VARIANTS, BoundVisitor(PhantomData))
+ }
+ 
+}
+
+#[cfg(feature = "result")]
+#[cfg_attr(docsrs, doc(cfg(feature = "result")))]
+impl<de, T, E> Deserialize for Result<T, E> where T: Deserialize<de>, E: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ enum Field {
+ Ok,
+ Err,
+ }
+ 
+ impl<de> Deserialize for Field {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ struct FieldVisitor {
+ }
+ 
+ impl<de> Visitor for FieldVisitor {
+ type Value = Field;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("`Ok` or `Err`")
+ }
+ 
+ fn visit_u64(self, value: u64) -> Result<Self::Value, E> {
+ match value { 0 => Ok(Field::Ok), 1 => Ok(Field::Err), _ => Err(Error::invalid_value(Unexpected::Unsigned(value), &self)) }
+ }
+ 
+ fn visit_str(self, value: &str) -> Result<Self::Value, E> {
+ match value { "Ok" => Ok(Field::Ok), "Err" => Ok(Field::Err), _ => Err(Error::unknown_variant(value, VARIANTS)) }
+ }
+ 
+ fn visit_bytes(self, value: &[u8]) -> Result<Self::Value, E> {
+ match value { b"Ok" => Ok(Field::Ok), b"Err" => Ok(Field::Err), _ => match str::from_utf8(value) { Ok(value) => Err(Error::unknown_variant(value, VARIANTS)), Err(_) => { Err(Error::invalid_value(Unexpected::Bytes(value), &self)) } } }
+ }
+ 
+ }
+ 
+ deserializer.deserialize_identifier(FieldVisitor)
+ }
+ 
+ }
+ 
+ struct ResultVisitor<T, E> {
+ (PhantomData<Result<T, E>>),
+ }
+ 
+ impl<de, T, E> Visitor for ResultVisitor<T, E> where T: Deserialize<de>, E: Deserialize<de> {
+ type Value = Result<T, E>;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str("enum Result")
+ }
+ 
+ fn visit_enum(self, data: A) -> Result<Self::Value, A::Error> {
+ match tri!(data.variant()) { (Field::Ok, v) => v.newtype_variant().map(Ok), (Field::Err, v) => v.newtype_variant().map(Err) }
+ }
+ 
+ }
+ 
+ const VARIANTS: &[&str] = & ["Ok", "Err"];
+ 
+ deserializer.deserialize_enum("Result", VARIANTS, ResultVisitor(PhantomData))
+ }
+ 
+}
+
+impl<de, T> Deserialize for Wrapping<T> where T: Deserialize<de> {
+ fn deserialize(deserializer: D) -> Result<Self, D::Error> {
+ Deserialize::deserialize(deserializer).map(Wrapping)
+ }
+ 
+}
+
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+#[cfg(any(feature = "std", not(no_core_net)))]
+struct FromStrVisitor<T> {
+ expecting: &str,
+ ty: PhantomData<T>,
+}
+
+#[cfg(any(feature = "std", not(no_core_net)))]
+impl<T> FromStrVisitor<T> {
+ fn new(expecting: &str) -> Self {
+ FromStrVisitor { expecting, ty: PhantomData }
+ }
+ 
+}
+
+#[cfg(any(feature = "std", not(no_core_net)))]
+impl<de, T> Visitor for FromStrVisitor<T> where T: str::FromStr, T::Err: fmt::Display {
+ type Value = T;
+ fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+ formatter.write_str(self.expecting)
+ }
+ 
+ fn visit_str(self, s: &str) -> Result<Self::Value, E> {
+ s.parse().map_err(Error::custom)
+ }
+ 
+}
+

@@ -1,9 +1,10 @@
 [package]
-name = "serde"
-version = "0.4.0"
-description = "Serialization/Deserialization framework for Zeta"
-authors = ["The Zeta Foundation"]
+name = "@data/serde"
+version = "1.0.228"
+description = "Serialization/Deserialization framework for Zeta — full serde v1.0.228 conversion"
 license = "MIT"
 repository = "https://github.com/murphsicles/serde"
-keywords = ["serialization", "json", "serde", "zeta", "parser"]
-categories = ["data-structures", "encoding", "parsing"]
+readme = "README.md"
+
+[fmt]
+style = "zeta-strict"

@@ -1,0 +1,13 @@
+// Auto-converted from /tmp/df-serde-1.0.228/serde-1.0.228/src/core/private/string.rs
+
+use crate::lib::*;
+#[cfg(any(feature = "std", feature = "alloc"))]
+pub fn from_utf8_lossy(bytes: &[u8]) -> Cow<'_, str> {
+ String::from_utf8_lossy(bytes)
+}
+
+#[cfg(not(any(feature = "std", feature = "alloc")))]
+pub fn from_utf8_lossy(bytes: &[u8]) -> &str {
+ str::from_utf8(bytes).unwrap_or("\u{fffd}\u{fffd}\u{fffd}")
+}
+

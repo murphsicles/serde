@@ -1,0 +1,557 @@
+// Auto-converted from /tmp/df-serde-1.0.228/serde-1.0.228/src/core/ser/mod.rs
+
+use crate::lib::*;
+mod fmt;
+mod impls;
+mod impossible;
+pub use self::impossible::Impossible;
+#[cfg(all(not(feature = "std"), no_core_error))] #[doc(no_inline)] pub use crate::std_error::Error as StdError;
+#[cfg(not(any(feature = "std", no_core_error)))] #[doc(no_inline)] pub use core::error::Error as StdError;
+#[cfg(feature = "std")] #[doc(no_inline)] pub use std::error::Error as StdError;
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+/// A **data structure**that can be serialized into any data format supported
+/// by Serde.
+/// 
+/// Serde provides `Serialize` implementations for many Rust primitive and
+/// standard library types. The complete list is [here][crate::ser]. All of
+/// these can be serialized using Serde out of the box.
+/// 
+/// Additionally, Serde provides a procedural macro called [`serde_derive`] to
+/// automatically generate `Serialize` implementations for structs and enums in
+/// your program. See the [derive section of the manual] for how to use this.
+/// 
+/// In rare cases it may be necessary to implement `Serialize` manually for some
+/// type in your program. See the [Implementing `Serialize`] section of the
+/// manual for more about this.
+/// 
+/// Third-party crates may provide `Serialize` implementations for types that
+/// they expose. For example the [`linked-hash-map`] crate provides a
+/// [`LinkedHashMap<K, V>`] type that is serializable by Serde because the crate
+/// provides an implementation of `Serialize` for it.
+/// 
+/// [Implementing `Serialize`]: https://serde.rs/impl-serialize.html
+/// [`LinkedHashMap<K, V>`]: https://docs.rs/linked-hash-map/*/linked_hash_map/struct.LinkedHashMap.html
+/// [`linked-hash-map`]: https://crates.io/crates/linked-hash-map
+/// [`serde_derive`]: https://crates.io/crates/serde_derive
+/// [derive section of the manual]: https://serde.rs/derive.html
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::on_unimplemented(message = "the trait bound `{Self}: serde::Serialize` is not satisfied", note = "for local types consider adding `#[derive(serde::Serialize)]` to your `{Self}` type", note = "for types from other crates check whether the crate offers a `serde` feature flag" ))]
+pub trait Serialize {
+ fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer
+}
+
+/// A **data format**that can serialize any data structure supported by Serde.
+/// 
+/// The role of this trait is to define the serialization half of the [Serde
+/// data model], which is a way to categorize every Rust data structure into one
+/// of 29 possible types. Each method of the `Serializer` trait corresponds to
+/// one of the types of the data model.
+/// 
+/// Implementations of `Serialize` map themselves into this data model by
+/// invoking exactly one of the `Serializer` methods.
+/// 
+/// The types that make up the Serde data model are:
+/// 
+/// - **14 primitive types**
+/// - bool
+/// - i8, i16, i32, i64, i128
+/// - u8, u16, u32, u64, u128
+/// - f32, f64
+/// - char
+/// - **string**
+/// - UTF-8 bytes with a length and no null terminator.
+/// - When serializing, all strings are handled equally. When deserializing,
+/// there are three flavors of strings: transient, owned, and borrowed.
+/// - **byte array** - \[u8\]
+/// - Similar to strings, during deserialization byte arrays can be
+/// transient, owned, or borrowed.
+/// - **option**
+/// - Either none or some value.
+/// - **unit**
+/// - The type of `()` in Rust. It represents an anonymous value containing
+/// no data.
+/// - **unit_struct**
+/// - For example `struct Unit` or `PhantomData<T>`. It represents a named
+/// value containing no data.
+/// - **unit_variant**
+/// - For example the `E::A` and `E::B` in `enum E { A, B }`.
+/// - **newtype_struct**
+/// - For example `struct Millimeters(u8)`.
+/// - **newtype_variant**
+/// - For example the `E::N` in `enum E { N(u8) }`.
+/// - **seq**
+/// - A variably sized heterogeneous sequence of values, for example
+/// `Vec<T>` or `HashSet<T>`. When serializing, the length may or may not
+/// be known before iterating through all the data. When deserializing,
+/// the length is determined by looking at the serialized data.
+/// - **tuple**
+/// - A statically sized heterogeneous sequence of values for which the
+/// length will be known at deserialization time without looking at the
+/// serialized data, for example `(u8)` or `(String, u64, Vec<T>)` or
+/// `[u64; 10]`.
+/// - **tuple_struct**
+/// - A named tuple, for example `struct Rgb(u8, u8, u8)`.
+/// - **tuple_variant**
+/// - For example the `E::T` in `enum E { T(u8, u8) }`.
+/// - **map**
+/// - A heterogeneous key-value pairing, for example `BTreeMap<K, V>`.
+/// - **struct**
+/// - A heterogeneous key-value pairing in which the keys are strings and
+/// will be known at deserialization time without looking at the
+/// serialized data, for example `struct S { r: u8, g: u8, b: u8 }`.
+/// - **struct_variant**
+/// - For example the `E::S` in `enum E { S { r: u8, g: u8, b: u8 } }`.
+/// 
+/// Many Serde serializers produce text or binary data as output, for example
+/// JSON or Postcard. This is not a requirement of the `Serializer` trait, and
+/// there are serializers that do not produce text or binary output. One example
+/// is the `serde_json::value::Serializer` (distinct from the main `serde_json`
+/// serializer) that produces a `serde_json::Value` data structure in memory as
+/// output.
+/// 
+/// [Serde data model]: https://serde.rs/data-model.html
+/// 
+/// # Example implementation
+/// 
+/// The [example data format] presented on the website contains example code for
+/// a basic JSON `Serializer`.
+/// 
+/// [example data format]: https://serde.rs/data-format.html
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::on_unimplemented(message = "the trait bound `{Self}: serde::Serializer` is not satisfied" ))]
+pub trait Serializer {
+ type Ok;
+ type Error;
+ type SerializeSeq;
+ type SerializeTuple;
+ type SerializeTupleStruct;
+ type SerializeTupleVariant;
+ type SerializeMap;
+ type SerializeStruct;
+ type SerializeStructVariant;
+ fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error>;
+ fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error>;
+ fn serialize_i16(self, v: i16) -> Result<Self::Ok, Self::Error>;
+ fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error>;
+ fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error>;
+ fn serialize_i128(self, v: i128) -> Result<Self::Ok, Self::Error>;
+ fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error>;
+ fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error>;
+ fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error>;
+ fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error>;
+ fn serialize_u128(self, v: u128) -> Result<Self::Ok, Self::Error>;
+ fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error>;
+ fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error>;
+ fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error>;
+ fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error>;
+ fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error>;
+ fn serialize_none(self) -> Result<Self::Ok, Self::Error>;
+ fn serialize_some<T>(self, value: &T) -> Result<Self::Ok, Self::Error> where T: Sized + Serialize;
+ fn serialize_unit(self) -> Result<Self::Ok, Self::Error>;
+ fn serialize_unit_struct(self, name: &str) -> Result<Self::Ok, Self::Error>;
+ fn serialize_unit_variant(self, name: &str, variant_index: u32, variant: &str) -> Result<Self::Ok, Self::Error>;
+ fn serialize_newtype_struct<T>(self, name: &str, value: &T) -> Result<Self::Ok, Self::Error> where T: Sized + Serialize;
+ fn serialize_newtype_variant<T>(self, name: &str, variant_index: u32, variant: &str, value: &T) -> Result<Self::Ok, Self::Error> where T: Sized + Serialize;
+ fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error>;
+ fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error>;
+ fn serialize_tuple_struct(self, name: &str, len: usize) -> Result<Self::SerializeTupleStruct, Self::Error>;
+ fn serialize_tuple_variant(self, name: &str, variant_index: u32, variant: &str, len: usize) -> Result<Self::SerializeTupleVariant, Self::Error>;
+ fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error>;
+ fn serialize_struct(self, name: &str, len: usize) -> Result<Self::SerializeStruct, Self::Error>;
+ fn serialize_struct_variant(self, name: &str, variant_index: u32, variant: &str, len: usize) -> Result<Self::SerializeStructVariant, Self::Error>;
+ fn collect_seq<I>(self, iter: I) -> Result<Self::Ok, Self::Error> where I: IntoIterator, IntoIterator::Item: Serialize;
+ fn collect_map<K, V, I>(self, iter: I) -> Result<Self::Ok, Self::Error> where K: Serialize, V: Serialize, I: IntoIterator<_>;
+ fn collect_str<T>(self, value: &T) -> Result<Self::Ok, Self::Error> where T: Sized + Display;
+ fn collect_str<T>(self, value: &T) -> Result<Self::Ok, Self::Error> where T: Sized + Display;
+ fn is_human_readable(&self) -> bool
+}
+
+/// Returned from `Serializer::serialize_seq`.
+/// 
+/// # Example use
+/// 
+/// ```edition2021
+/// # use std::marker::PhantomData;
+/// #
+/// # struct Vec<T>(PhantomData<T>);
+/// #
+/// # impl<T> Vec<T> {
+/// # fn len(&self) -> usize {
+/// # unimplemented!()
+/// # }
+/// # }
+/// #
+/// # impl<'a, T> IntoIterator for &'a Vec<T> {
+/// # type Item = &'a T;
+/// # type IntoIter = Box<dyn Iterator<Item = &'a T>>;
+/// # fn into_iter(self) -> Self::IntoIter {
+/// # unimplemented!()
+/// # }
+/// # }
+/// #
+/// use serde::ser::{Serialize, SerializeSeq, Serializer};
+/// 
+/// impl<T> Serialize for Vec<T>
+/// where
+/// T: Serialize,
+/// {
+/// fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+/// where
+/// S: Serializer,
+/// {
+/// let mut seq = serializer.serialize_seq(Some(self.len()))?;
+/// for element in self {
+/// seq.serialize_element(element)?;
+/// }
+/// seq.end()
+/// }
+/// }
+/// ```
+/// 
+/// # Example implementation
+/// 
+/// The [example data format] presented on the website demonstrates an
+/// implementation of `SerializeSeq` for a basic JSON data format.
+/// 
+/// [example data format]: https://serde.rs/data-format.html
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::on_unimplemented(message = "the trait bound `{Self}: serde::ser::SerializeSeq` is not satisfied" ))]
+pub trait SerializeSeq {
+ type Ok;
+ type Error;
+ fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error> where T: Sized + Serialize;
+ fn end(self) -> Result<Self::Ok, Self::Error>
+}
+
+/// Returned from `Serializer::serialize_tuple`.
+/// 
+/// # Example use
+/// 
+/// ```edition2021
+/// use serde::ser::{Serialize, SerializeTuple, Serializer};
+/// 
+/// # mod fool {
+/// # trait Serialize {}
+/// impl<A, B, C> Serialize for(A, B, C)
+/// # {}
+/// # }
+/// #
+/// # struct Tuple3<A, B, C>(A, B, C);
+/// #
+/// # impl<A, B, C> Serialize for Tuple3<A, B, C>
+/// where
+/// A: Serialize,
+/// B: Serialize,
+/// C: Serialize,
+/// {
+/// fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+/// where
+/// S: Serializer,
+/// {
+/// let mut tup = serializer.serialize_tuple(3)?;
+/// tup.serialize_element(&self.0)?;
+/// tup.serialize_element(&self.1)?;
+/// tup.serialize_element(&self.2)?;
+/// tup.end()
+/// }
+/// }
+/// ```
+/// 
+/// ```edition2021
+/// # use std::marker::PhantomData;
+/// #
+/// # struct Array<T>(PhantomData<T>);
+/// #
+/// # impl<T> Array<T> {
+/// # fn len(&self) -> usize {
+/// # unimplemented!()
+/// # }
+/// # }
+/// #
+/// # impl<'a, T> IntoIterator for &'a Array<T> {
+/// # type Item = &'a T;
+/// # type IntoIter = Box<dyn Iterator<Item = &'a T>>;
+/// # fn into_iter(self) -> Self::IntoIter {
+/// # unimplemented!()
+/// # }
+/// # }
+/// #
+/// use serde::ser::{Serialize, SerializeTuple, Serializer};
+/// 
+/// # mod fool {
+/// # trait Serialize {}
+/// impl<T> Serialize for [T; 16]
+/// # {}
+/// # }
+/// #
+/// # impl<T> Serialize for Array<T>
+/// where
+/// T: Serialize,
+/// {
+/// fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+/// where
+/// S: Serializer,
+/// {
+/// let mut seq = serializer.serialize_tuple(16)?;
+/// for element in self {
+/// seq.serialize_element(element)?;
+/// }
+/// seq.end()
+/// }
+/// }
+/// ```
+/// 
+/// # Example implementation
+/// 
+/// The [example data format] presented on the website demonstrates an
+/// implementation of `SerializeTuple` for a basic JSON data format.
+/// 
+/// [example data format]: https://serde.rs/data-format.html
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::on_unimplemented(message = "the trait bound `{Self}: serde::ser::SerializeTuple` is not satisfied" ))]
+pub trait SerializeTuple {
+ type Ok;
+ type Error;
+ fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error> where T: Sized + Serialize;
+ fn end(self) -> Result<Self::Ok, Self::Error>
+}
+
+/// Returned from `Serializer::serialize_tuple_struct`.
+/// 
+/// # Example use
+/// 
+/// ```edition2021
+/// use serde::ser::{Serialize, SerializeTupleStruct, Serializer};
+/// 
+/// struct Rgb(u8, u8, u8);
+/// 
+/// impl Serialize for Rgb {
+/// fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+/// where
+/// S: Serializer,
+/// {
+/// let mut ts = serializer.serialize_tuple_struct("Rgb", 3)?;
+/// ts.serialize_field(&self.0)?;
+/// ts.serialize_field(&self.1)?;
+/// ts.serialize_field(&self.2)?;
+/// ts.end()
+/// }
+/// }
+/// ```
+/// 
+/// # Example implementation
+/// 
+/// The [example data format] presented on the website demonstrates an
+/// implementation of `SerializeTupleStruct` for a basic JSON data format.
+/// 
+/// [example data format]: https://serde.rs/data-format.html
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::on_unimplemented(message = "the trait bound `{Self}: serde::ser::SerializeTupleStruct` is not satisfied" ))]
+pub trait SerializeTupleStruct {
+ type Ok;
+ type Error;
+ fn serialize_field<T>(&mut self, value: &T) -> Result<(), Self::Error> where T: Sized + Serialize;
+ fn end(self) -> Result<Self::Ok, Self::Error>
+}
+
+/// Returned from `Serializer::serialize_tuple_variant`.
+/// 
+/// # Example use
+/// 
+/// ```edition2021
+/// use serde::ser::{Serialize, SerializeTupleVariant, Serializer};
+/// 
+/// enum E {
+/// T(u8, u8),
+/// U(String, u32, u32),
+/// }
+/// 
+/// impl Serialize for E {
+/// fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+/// where
+/// S: Serializer,
+/// {
+/// match *self {
+/// E::T(ref a, ref b) => {
+/// let mut tv = serializer.serialize_tuple_variant("E", 0, "T", 2)?;
+/// tv.serialize_field(a)?;
+/// tv.serialize_field(b)?;
+/// tv.end()
+/// }
+/// E::U(ref a, ref b, ref c) => {
+/// let mut tv = serializer.serialize_tuple_variant("E", 1, "U", 3)?;
+/// tv.serialize_field(a)?;
+/// tv.serialize_field(b)?;
+/// tv.serialize_field(c)?;
+/// tv.end()
+/// }
+/// }
+/// }
+/// }
+/// ```
+/// 
+/// # Example implementation
+/// 
+/// The [example data format] presented on the website demonstrates an
+/// implementation of `SerializeTupleVariant` for a basic JSON data format.
+/// 
+/// [example data format]: https://serde.rs/data-format.html
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::on_unimplemented(message = "the trait bound `{Self}: serde::ser::SerializeTupleVariant` is not satisfied" ))]
+pub trait SerializeTupleVariant {
+ type Ok;
+ type Error;
+ fn serialize_field<T>(&mut self, value: &T) -> Result<(), Self::Error> where T: Sized + Serialize;
+ fn end(self) -> Result<Self::Ok, Self::Error>
+}
+
+/// Returned from `Serializer::serialize_map`.
+/// 
+/// # Example use
+/// 
+/// ```edition2021
+/// # use std::marker::PhantomData;
+/// #
+/// # struct HashMap<K, V>(PhantomData<K>, PhantomData<V>);
+/// #
+/// # impl<K, V> HashMap<K, V> {
+/// # fn len(&self) -> usize {
+/// # unimplemented!()
+/// # }
+/// # }
+/// #
+/// # impl<'a, K, V> IntoIterator for &'a HashMap<K, V> {
+/// # type Item = (&'a K, &'a V);
+/// # type IntoIter = Box<dyn Iterator<Item = (&'a K, &'a V)>>;
+/// #
+/// # fn into_iter(self) -> Self::IntoIter {
+/// # unimplemented!()
+/// # }
+/// # }
+/// #
+/// use serde::ser::{Serialize, SerializeMap, Serializer};
+/// 
+/// impl<K, V> Serialize for HashMap<K, V>
+/// where
+/// K: Serialize,
+/// V: Serialize,
+/// {
+/// fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+/// where
+/// S: Serializer,
+/// {
+/// let mut map = serializer.serialize_map(Some(self.len()))?;
+/// for(k, v) in self {
+/// map.serialize_entry(k, v)?;
+/// }
+/// map.end()
+/// }
+/// }
+/// ```
+/// 
+/// # Example implementation
+/// 
+/// The [example data format] presented on the website demonstrates an
+/// implementation of `SerializeMap` for a basic JSON data format.
+/// 
+/// [example data format]: https://serde.rs/data-format.html
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::on_unimplemented(message = "the trait bound `{Self}: serde::ser::SerializeMap` is not satisfied" ))]
+pub trait SerializeMap {
+ type Ok;
+ type Error;
+ fn serialize_key<T>(&mut self, key: &T) -> Result<(), Self::Error> where T: Sized + Serialize;
+ fn serialize_value<T>(&mut self, value: &T) -> Result<(), Self::Error> where T: Sized + Serialize;
+ fn serialize_entry<K, V>(&mut self, key: &K, value: &V) -> Result<(), Self::Error> where K: Sized + Serialize, V: Sized + Serialize;
+ fn end(self) -> Result<Self::Ok, Self::Error>
+}
+
+/// Returned from `Serializer::serialize_struct`.
+/// 
+/// # Example use
+/// 
+/// ```edition2021
+/// use serde::ser::{Serialize, SerializeStruct, Serializer};
+/// 
+/// struct Rgb {
+/// r: u8,
+/// g: u8,
+/// b: u8,
+/// }
+/// 
+/// impl Serialize for Rgb {
+/// fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+/// where
+/// S: Serializer,
+/// {
+/// let mut rgb = serializer.serialize_struct("Rgb", 3)?;
+/// rgb.serialize_field("r", &self.r)?;
+/// rgb.serialize_field("g", &self.g)?;
+/// rgb.serialize_field("b", &self.b)?;
+/// rgb.end()
+/// }
+/// }
+/// ```
+/// 
+/// # Example implementation
+/// 
+/// The [example data format] presented on the website demonstrates an
+/// implementation of `SerializeStruct` for a basic JSON data format.
+/// 
+/// [example data format]: https://serde.rs/data-format.html
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::on_unimplemented(message = "the trait bound `{Self}: serde::ser::SerializeStruct` is not satisfied" ))]
+pub trait SerializeStruct {
+ type Ok;
+ type Error;
+ fn serialize_field<T>(&mut self, key: &str, value: &T) -> Result<(), Self::Error> where T: Sized + Serialize;
+ fn skip_field(&mut self, key: &str) -> Result<(), Self::Error>;
+ fn end(self) -> Result<Self::Ok, Self::Error>
+}
+
+/// Returned from `Serializer::serialize_struct_variant`.
+/// 
+/// # Example use
+/// 
+/// ```edition2021
+/// use serde::ser::{Serialize, SerializeStructVariant, Serializer};
+/// 
+/// enum E {
+/// S { r: u8, g: u8, b: u8 },
+/// }
+/// 
+/// impl Serialize for E {
+/// fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+/// where
+/// S: Serializer,
+/// {
+/// match *self {
+/// E::S {
+/// ref r,
+/// ref g,
+/// ref b,
+/// } => {
+/// let mut sv = serializer.serialize_struct_variant("E", 0, "S", 3)?;
+/// sv.serialize_field("r", r)?;
+/// sv.serialize_field("g", g)?;
+/// sv.serialize_field("b", b)?;
+/// sv.end()
+/// }
+/// }
+/// }
+/// }
+/// ```
+/// 
+/// # Example implementation
+/// 
+/// The [example data format] presented on the website demonstrates an
+/// implementation of `SerializeStructVariant` for a basic JSON data format.
+/// 
+/// [example data format]: https://serde.rs/data-format.html
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::on_unimplemented(message = "the trait bound `{Self}: serde::ser::SerializeStructVariant` is not satisfied" ))]
+pub trait SerializeStructVariant {
+ type Ok;
+ type Error;
+ fn serialize_field<T>(&mut self, key: &str, value: &T) -> Result<(), Self::Error> where T: Sized + Serialize;
+ fn skip_field(&mut self, key: &str) -> Result<(), Self::Error>;
+ fn end(self) -> Result<Self::Ok, Self::Error>
+}
+
+fn iterator_len_hint<I>(iter: &I) -> Option<usize> where I: Iterator {
+ match iter.size_hint() { (lo, Some(hi)) if lo == hi => Some(lo), _ => None }
+}
+

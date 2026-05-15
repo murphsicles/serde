@@ -1,0 +1,37 @@
+// Auto-converted from /tmp/df-serde-1.0.228/serde-1.0.228/src/core/private/doc.rs
+
+use crate::lib::*;
+use crate::ser;
+#[derive(Debug)]
+pub struct Error {
+}
+
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::do_not_recommend)]
+impl ser::Error for Error {
+ fn custom(_: T) -> Self {
+ unimplemented!()
+ }
+ 
+}
+
+#[cfg(feature = "std")]
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::do_not_recommend)]
+impl error::Error for Error {
+ fn description(&self) -> &str {
+ unimplemented!()
+ }
+ 
+}
+
+#[cfg_attr(not(no_diagnostic_namespace), diagnostic::do_not_recommend)]
+impl Display for Error {
+ fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
+ unimplemented!()
+ }
+ 
+}
+
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
